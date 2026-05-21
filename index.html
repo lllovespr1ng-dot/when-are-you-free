@@ -169,6 +169,21 @@
 
     .btn-ghost:hover { border-color: var(--earth); color: var(--dark); }
 
+    /* ── Step block (after event creation) ─────────────── */
+    .step-block {
+      padding: 24px 28px;
+      border: 1px solid var(--tan);
+      background: rgba(196,168,130,.13);
+    }
+
+    .step-hint {
+      font-size: 11px;
+      letter-spacing: .18em;
+      text-transform: uppercase;
+      color: var(--dark);
+      margin-top: 4px;
+    }
+
     /* ── Link output blocks ─────────────────────────────── */
     .link-block { margin-bottom: 28px; }
 
@@ -343,7 +358,7 @@
     </div>
 
     <div class="field-group">
-      <label class="field-label">SELECT DATES</label>
+      <label class="field-label">WHICH DATES COULD WORK? — UNCHECK ONES THAT DEFINITELY WON'T</label>
       <div id="date-checkboxes" class="date-grid"></div>
     </div>
 
@@ -353,8 +368,16 @@
     <div id="create-result" style="display:none">
       <div class="horizon"></div>
 
+      <div class="step-block">
+        <div class="field-label" style="margin-bottom:6px">STEP 2 OF 2 — ADD YOUR OWN AVAILABILITY</div>
+        <p class="step-hint">YOU CREATED THE EVENT. NOW MARK WHEN YOU ARE FREE.</p>
+        <a id="go-vote-btn" href="#" class="btn" style="text-decoration:none; display:inline-block; margin-top:16px">MARK MY AVAILABILITY &rarr;</a>
+      </div>
+
+      <div class="horizon" style="margin-top:36px"></div>
+
       <div class="link-block">
-        <label class="field-label">VOTE LINK — SHARE WITH OTHERS</label>
+        <label class="field-label">VOTE LINK — SHARE WITH OTHERS AFTER YOU VOTE</label>
         <div class="link-row">
           <input type="text" id="vote-link" readonly />
           <button class="btn-ghost" onclick="copyField('vote-link',this)">COPY</button>
@@ -608,6 +631,7 @@ async function handleGenerate() {
     const base = location.href.split('#')[0];
     el('vote-link').value    = `${base}#vote/${id}`;
     el('results-link').value = `${base}#results/${id}`;
+    el('go-vote-btn').href   = `#vote/${id}`;
     show('create-result');
     status.textContent = '';
     btn.disabled       = false;
