@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>WHEN ARE YOU FREE</title>
+  <style>
+    :root {
+      --sand:  #D4B896;
+      --tan:   #C4A882;
+      --earth: #8B6914;
+      --sky:   #E8DCC8;
+      --dark:  #3A2A0A;
+      --muted: #A89070;
+      --faded: #C0A880;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: var(--sky);
+      background-image:
+        repeating-linear-gradient(89deg,  transparent, transparent 200px, rgba(139,105,20,.055) 200px, rgba(139,105,20,.055) 201px),
+        repeating-linear-gradient(2deg,   transparent, transparent 260px, rgba(139,105,20,.045) 260px, rgba(139,105,20,.045) 261px),
+        repeating-linear-gradient(47deg,  transparent, transparent 380px, rgba(139,105,20,.035) 380px, rgba(139,105,20,.035) 381px),
+        repeating-linear-gradient(133deg, transparent, transparent 310px, rgba(139,105,20,.025) 310px, rgba(139,105,20,.025) 311px);
+      color: var(--dark);
+      font-family: 'Courier New', 'Lucida Console', monospace;
+      font-size: 13px;
+      min-height: 100vh;
+    }
+
+    /* Vignette overlay */
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(ellipse at 50% 40%, transparent 52%, rgba(180,148,96,.28) 100%);
+      pointer-events: none;
+      z-index: 10;
+    }
+
+    .container {
+      max-width: 680px;
+      margin: 0 auto;
+      padding: 80px 44px 110px;
+    }
+
+    /* ── Typography ─────────────────────────────────────── */
+    .eyebrow {
+      font-size: 9px;
+      letter-spacing: 0.45em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 16px;
+    }
+
+    h1 {
+      font-size: 27px;
+      font-weight: 400;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--dark);
+      line-height: 1.3;
+    }
+
+    /* ── Horizon line ───────────────────────────────────── */
+    .horizon {
+      width: 100%;
+      height: 1px;
+      background: linear-gradient(90deg, transparent 0%, var(--tan) 18%, var(--tan) 82%, transparent 100%);
+      opacity: 0.55;
+      margin: 38px 0;
+    }
+
+    /* ── Form fields ────────────────────────────────────── */
+    .field-group { margin-bottom: 44px; }
+
+    .field-label {
+      display: block;
+      font-size: 9px;
+      letter-spacing: 0.38em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 12px;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      background: transparent;
+      border: none;
+      border-bottom: 1px solid var(--tan);
+      padding: 10px 0;
+      font-family: inherit;
+      font-size: 15px;
+      color: var(--dark);
+      letter-spacing: 0.1em;
+      outline: none;
+    }
+
+    input[type="text"]::placeholder { color: var(--faded); }
+    input[type="text"]:focus { border-bottom-color: var(--earth); }
+    input[type="text"][readonly] { cursor: default; font-size: 12px; letter-spacing: 0.04em; }
+
+    /* ── Date picker ────────────────────────────────────── */
+    .date-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 6px;
+    }
+
+    .date-check-item { display: contents; }
+
+    .date-check-item input[type="checkbox"] { display: none; }
+
+    .date-check-item label {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      padding: 9px 3px;
+      border: 1px solid var(--tan);
+      background: transparent;
+      cursor: pointer;
+      transition: background .1s;
+    }
+
+    .date-check-item label:hover { background: rgba(196,168,130,.3); }
+
+    .date-check-item input[type="checkbox"]:checked + label {
+      background: var(--tan);
+      border-color: var(--earth);
+    }
+
+    .dc-dow { font-size: 8px;  letter-spacing: .2em;  text-transform: uppercase; color: var(--muted); }
+    .dc-day { font-size: 14px; letter-spacing: .04em; color: var(--dark); }
+    .dc-mon { font-size: 8px;  letter-spacing: .15em; text-transform: uppercase; color: var(--muted); }
+
+    /* ── Buttons ────────────────────────────────────────── */
+    .btn {
+      background: var(--tan);
+      border: 1px solid var(--earth);
+      color: var(--dark);
+      padding: 13px 38px;
+      font-family: inherit;
+      font-size: 10px;
+      font-weight: 400;
+      letter-spacing: 0.35em;
+      text-transform: uppercase;
+      cursor: pointer;
+    }
+
+    .btn:hover  { background: var(--sand); }
+    .btn:active { filter: brightness(.93); }
+    .btn:disabled { opacity: .45; cursor: default; }
+
+    .btn-ghost {
+      background: transparent;
+      border: 1px solid var(--faded);
+      color: var(--muted);
+      padding: 8px 18px;
+      font-family: inherit;
+      font-size: 9px;
+      letter-spacing: .28em;
+      text-transform: uppercase;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .btn-ghost:hover { border-color: var(--earth); color: var(--dark); }
+
+    /* ── Link output blocks ─────────────────────────────── */
+    .link-block { margin-bottom: 28px; }
+
+    .link-row { display: flex; gap: 10px; align-items: flex-end; }
+    .link-row input[type="text"] { flex: 1; }
+
+    /* ── Availability grid (vote) ───────────────────────── */
+    .avail-grid {
+      display: grid;
+      grid-template-columns: 128px repeat(3, 1fr);
+      border-left: 1px solid var(--tan);
+      border-top:  1px solid var(--tan);
+      margin-bottom: 40px;
+    }
+
+    .grid-header {
+      border-right:  1px solid var(--tan);
+      border-bottom: 1px solid var(--tan);
+      padding: 10px 6px;
+      font-size: 8px;
+      letter-spacing: .32em;
+      text-transform: uppercase;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    .grid-date {
+      border-right:  1px solid var(--tan);
+      border-bottom: 1px solid var(--tan);
+      padding: 10px 13px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      justify-content: center;
+    }
+
+    .grid-date-dow { font-size: 8px;  letter-spacing: .22em; text-transform: uppercase; color: var(--muted); }
+    .grid-date-md  { font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--dark); }
+
+    .grid-cell {
+      border-right:  1px solid var(--tan);
+      border-bottom: 1px solid var(--tan);
+      min-height: 46px;
+      cursor: pointer;
+      transition: background .1s;
+    }
+
+    .grid-cell:hover    { background: rgba(196,168,130,.28); }
+    .grid-cell.selected { background: var(--tan); }
+
+    /* ── Results grid ───────────────────────────────────── */
+    .results-grid {
+      display: grid;
+      grid-template-columns: 128px repeat(3, 1fr);
+      border-left: 1px solid var(--tan);
+      border-top:  1px solid var(--tan);
+      margin-bottom: 40px;
+    }
+
+    .result-cell {
+      border-right:  1px solid var(--tan);
+      border-bottom: 1px solid var(--tan);
+      min-height: 58px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+    }
+
+    .result-cell.best {
+      outline: 2px solid var(--earth);
+      outline-offset: -2px;
+    }
+
+    .rc-count  { font-size: 21px; font-weight: 400; letter-spacing: .04em; color: var(--dark); }
+    .rc-denom  { font-size: 8px;  letter-spacing: .22em; text-transform: uppercase; color: var(--muted); }
+    .result-cell.best .rc-count { color: var(--earth); }
+
+    /* ── Status / feedback ──────────────────────────────── */
+    .status {
+      font-size: 9px;
+      letter-spacing: .26em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-top: 14px;
+      min-height: 18px;
+    }
+
+    .status.err { color: #7A3010; }
+
+    .loading-msg {
+      font-size: 9px;
+      letter-spacing: .38em;
+      text-transform: uppercase;
+      color: var(--muted);
+      padding: 64px 0;
+      text-align: center;
+    }
+
+    .error-msg {
+      font-size: 9px;
+      letter-spacing: .3em;
+      text-transform: uppercase;
+      color: #7A3010;
+      padding: 40px 0;
+    }
+
+    /* ── Vote confirmation ──────────────────────────────── */
+    .confirmation {
+      border-top: 1px solid rgba(196,168,130,.5);
+      padding-top: 28px;
+      margin-top: 4px;
+    }
+
+    .confirmation p {
+      font-size: 10px;
+      letter-spacing: .28em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 20px;
+    }
+
+    /* ── Text links ─────────────────────────────────────── */
+    a.text-link {
+      font-size: 10px;
+      letter-spacing: .27em;
+      text-transform: uppercase;
+      color: var(--earth);
+      text-decoration: none;
+      border-bottom: 1px solid currentColor;
+      padding-bottom: 1px;
+    }
+
+    a.text-link:hover { color: var(--dark); }
+
+    /* ── Participants list ──────────────────────────────── */
+    .participants         { margin-top: 52px; }
+    .participants-label   { font-size: 9px; letter-spacing: .38em; text-transform: uppercase; color: var(--muted); margin-bottom: 16px; }
+    .participant-row      { font-size: 11px; letter-spacing: .18em; text-transform: uppercase; color: var(--dark); padding: 11px 0; border-bottom: 1px solid rgba(196,168,130,.38); }
+
+    /* ── Results meta ───────────────────────────────────── */
+    .results-meta { font-size: 10px; letter-spacing: .26em; text-transform: uppercase; color: var(--muted); margin-bottom: 36px; }
+
+    .back-row { margin-top: 58px; }
+
+    /* ── Responsive ─────────────────────────────────────── */
+    @media (max-width: 520px) {
+      .container { padding: 44px 20px 80px; }
+      .date-grid { grid-template-columns: repeat(4, 1fr); }
+      h1 { font-size: 18px; letter-spacing: .15em; }
+      .avail-grid, .results-grid { grid-template-columns: 88px repeat(3, 1fr); }
+      .grid-date { padding: 8px 8px; }
+      .grid-date-md { font-size: 10px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════════════════════════════
+     PAGE 1 · CREATE
+════════════════════════════════════════════════════════════ -->
+<section id="page-create">
+  <div class="container">
+    <div class="eyebrow">SCHEDULE ACROSS THE WASTELAND</div>
+    <h1>WHEN ARE<br>YOU FREE</h1>
+    <div class="horizon"></div>
+
+    <div class="field-group">
+      <label class="field-label" for="event-title">EVENT TITLE</label>
+      <input type="text" id="event-title" placeholder="NAME YOUR GATHERING" autocomplete="off" />
+    </div>
+
+    <div class="field-group">
+      <label class="field-label">SELECT DATES</label>
+      <div id="date-checkboxes" class="date-grid"></div>
+    </div>
+
+    <button class="btn" id="btn-generate">GENERATE LINK</button>
+    <div id="create-status" class="status"></div>
+
+    <div id="create-result" style="display:none">
+      <div class="horizon"></div>
+
+      <div class="link-block">
+        <label class="field-label">VOTE LINK — SHARE WITH OTHERS</label>
+        <div class="link-row">
+          <input type="text" id="vote-link" readonly />
+          <button class="btn-ghost" onclick="copyField('vote-link',this)">COPY</button>
+        </div>
+      </div>
+
+      <div class="link-block">
+        <label class="field-label">RESULTS LINK — VIEW ALL RESPONSES</label>
+        <div class="link-row">
+          <input type="text" id="results-link" readonly />
+          <button class="btn-ghost" onclick="copyField('results-link',this)">COPY</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════════
+     PAGE 2 · VOTE
+════════════════════════════════════════════════════════════ -->
+<section id="page-vote" style="display:none">
+  <div class="container">
+    <div class="eyebrow">MARK YOUR AVAILABILITY</div>
+    <h1 id="vote-title">&nbsp;</h1>
+    <div class="horizon"></div>
+
+    <div id="vote-loading" class="loading-msg">FETCHING FROM THE VOID&nbsp;…</div>
+    <div id="vote-error"   class="error-msg" style="display:none">EVENT NOT FOUND IN THE WASTELAND.</div>
+
+    <div id="vote-content" style="display:none">
+      <div id="avail-grid-wrap"></div>
+
+      <div id="vote-form">
+        <div class="field-group">
+          <label class="field-label" for="voter-name">YOUR NAME</label>
+          <input type="text" id="voter-name" placeholder="ENTER YOUR NAME" autocomplete="off" />
+        </div>
+        <button class="btn" id="btn-submit">SUBMIT AVAILABILITY</button>
+        <div id="vote-status" class="status"></div>
+      </div>
+
+      <div id="vote-confirm" class="confirmation" style="display:none">
+        <p>YOUR WANDERINGS HAVE BEEN RECORDED.</p>
+        <a id="link-to-results" href="#" class="text-link">VIEW ALL RESPONSES &rarr;</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════════
+     PAGE 3 · RESULTS
+════════════════════════════════════════════════════════════ -->
+<section id="page-results" style="display:none">
+  <div class="container">
+    <div class="eyebrow">AVAILABILITY ACROSS THE DESERT</div>
+    <h1 id="results-title">&nbsp;</h1>
+    <div class="horizon"></div>
+
+    <div id="results-loading" class="loading-msg">READING THE SANDS&nbsp;…</div>
+    <div id="results-error"   class="error-msg" style="display:none">EVENT NOT FOUND IN THE WASTELAND.</div>
+
+    <div id="results-content" style="display:none">
+      <div id="results-meta" class="results-meta"></div>
+      <div id="results-grid-wrap"></div>
+      <div id="participants-wrap"></div>
+    </div>
+
+    <div class="back-row">
+      <div class="horizon"></div>
+      <a href="#create" class="text-link">&larr; CREATE NEW EVENT</a>
+    </div>
+  </div>
+</section>
+
+<script type="module">
+// ════════════════════════════════════════════════════════════
+//  FIREBASE SDK
+// ════════════════════════════════════════════════════════════
+import { initializeApp } from
+  'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import {
+  getFirestore, doc, setDoc, getDoc,
+  collection, addDoc, getDocs, serverTimestamp
+} from
+  'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+// ┌──────────────────────────────────────────────────────────┐
+// │         *** REPLACE WITH YOUR FIREBASE CONFIG ***        │
+// └──────────────────────────────────────────────────────────┘
+const firebaseConfig = {
+  apiKey:            "AIzaSyC3HnGDhAL18GMY4SqoylHR1U_6H_y0MVI",
+  authDomain:        "when-are-you-free-adfcc.firebaseapp.com",
+  projectId:         "when-are-you-free-adfcc",
+  storageBucket:     "when-are-you-free-adfcc.firebasestorage.app",
+  messagingSenderId: "807468969439",
+  appId:             "1:807468969439:web:33ea5da0705bc79e08286a",
+  measurementId:     "G-JBH3HGLHP0"
+};
+// ┌──────────────────────────────────────────────────────────┐
+// │  Firestore security rules (Firebase console → Rules):   │
+// │    rules_version = '2';                                  │
+// │    service cloud.firestore {                             │
+// │      match /databases/{db}/documents/{doc=**} {          │
+// │        allow read, write: if true;  // dev only         │
+// │      }                                                   │
+// │    }                                                     │
+// └──────────────────────────────────────────────────────────┘
+
+const app = initializeApp(firebaseConfig);
+const db  = getFirestore(app);
+
+// ── Constants ────────────────────────────────────────────────
+const DAYS   = ['SUN','MON','TUE','WED','THU','FRI','SAT'];
+const MONTHS = ['JAN','FEB','MAR','APR','MAY','JUN',
+                'JUL','AUG','SEP','OCT','NOV','DEC'];
+const SLOTS  = ['morning','afternoon','evening'];
+
+// ── Helpers ──────────────────────────────────────────────────
+function genId() {
+  return (typeof crypto !== 'undefined' && crypto.randomUUID)
+    ? crypto.randomUUID().replace(/-/g, '').slice(0, 12)
+    : Math.random().toString(36).slice(2, 14);
+}
+
+function parseDate(s) {
+  const d = new Date(s + 'T12:00:00');
+  return { dow: DAYS[d.getDay()], day: d.getDate(), mon: MONTHS[d.getMonth()] };
+}
+
+function next14Days() {
+  const today = new Date();
+  return Array.from({ length: 14 }, (_, i) => {
+    const d = new Date(today);
+    d.setDate(today.getDate() + i);
+    return d.toISOString().split('T')[0];
+  });
+}
+
+function el(id)     { return document.getElementById(id); }
+function show(id)   { el(id).style.display = 'block'; }
+function hide(id)   { el(id).style.display = 'none';  }
+
+window.copyField = (id, btn) => {
+  const val = el(id).value;
+  navigator.clipboard.writeText(val)
+    .then(() => { const t = btn.textContent; btn.textContent = 'COPIED'; setTimeout(() => btn.textContent = t, 1600); })
+    .catch(() => { el(id).select(); document.execCommand('copy'); });
+};
+
+// ── Router ───────────────────────────────────────────────────
+const PAGES = ['page-create', 'page-vote', 'page-results'];
+
+function showPage(id) {
+  PAGES.forEach(p => el(p).style.display = p === id ? 'block' : 'none');
+}
+
+async function route() {
+  const h = window.location.hash;
+  if (!h || h === '#' || h === '#create') {
+    showPage('page-create'); initCreate();
+  } else if (h.startsWith('#vote/')) {
+    showPage('page-vote');    await loadVote(h.slice(6));
+  } else if (h.startsWith('#results/')) {
+    showPage('page-results'); await loadResults(h.slice(9));
+  } else {
+    showPage('page-create'); initCreate();
+  }
+}
+
+window.addEventListener('hashchange', route);
+document.addEventListener('DOMContentLoaded', route);
+
+// ════════════════════════════════════════════════════════════
+//  PAGE 1 · CREATE
+// ════════════════════════════════════════════════════════════
+function initCreate() {
+  hide('create-result');
+  const s = el('create-status');
+  s.textContent = '';
+  s.className   = 'status';
+
+  const wrap = el('date-checkboxes');
+  wrap.innerHTML = '';
+  next14Days().forEach(dateStr => {
+    const { dow, day, mon } = parseDate(dateStr);
+    const item = document.createElement('div');
+    item.className = 'date-check-item';
+    item.innerHTML = `
+      <input type="checkbox" id="dc-${dateStr}" value="${dateStr}" checked>
+      <label for="dc-${dateStr}">
+        <span class="dc-dow">${dow}</span>
+        <span class="dc-day">${day}</span>
+        <span class="dc-mon">${mon}</span>
+      </label>`;
+    wrap.appendChild(item);
+  });
+
+  el('btn-generate').onclick = handleGenerate;
+}
+
+async function handleGenerate() {
+  const title  = el('event-title').value.trim();
+  const status = el('create-status');
+
+  if (!title) {
+    status.textContent = 'ENTER AN EVENT TITLE TO CONTINUE.';
+    status.className   = 'status err';
+    return;
+  }
+
+  const dates = [...document.querySelectorAll('#date-checkboxes input:checked')]
+    .map(c => c.value);
+
+  if (!dates.length) {
+    status.textContent = 'SELECT AT LEAST ONE DATE.';
+    status.className   = 'status err';
+    return;
+  }
+
+  const btn = el('btn-generate');
+  btn.disabled       = true;
+  status.textContent = 'CARVING INTO THE STONE…';
+  status.className   = 'status';
+
+  try {
+    const id = genId();
+    await setDoc(doc(db, 'events', id), {
+      title: title.toUpperCase(),
+      dates,
+      createdAt: serverTimestamp()
+    });
+
+    const base = location.href.split('#')[0];
+    el('vote-link').value    = `${base}#vote/${id}`;
+    el('results-link').value = `${base}#results/${id}`;
+    show('create-result');
+    status.textContent = '';
+    btn.disabled       = false;
+  } catch (e) {
+    console.error(e);
+    status.textContent = 'THE SANDS RESISTED. CHECK YOUR FIREBASE CONFIG.';
+    status.className   = 'status err';
+    btn.disabled       = false;
+  }
+}
+
+// ════════════════════════════════════════════════════════════
+//  PAGE 2 · VOTE
+// ════════════════════════════════════════════════════════════
+let selectedSlots = {};
+
+async function loadVote(eventId) {
+  selectedSlots = {};
+  show('vote-loading');
+  hide('vote-content');
+  hide('vote-error');
+  hide('vote-confirm');
+  el('vote-title').innerHTML     = '&nbsp;';
+  el('vote-status').textContent  = '';
+  el('vote-status').className    = 'status';
+
+  try {
+    const snap = await getDoc(doc(db, 'events', eventId));
+    if (!snap.exists()) throw new Error('not found');
+
+    const event = snap.data();
+    el('vote-title').textContent = event.title;
+    hide('vote-loading');
+
+    buildAvailGrid(event.dates);
+
+    el('voter-name').value           = '';
+    const btn = el('btn-submit');
+    btn.style.display = '';
+    btn.disabled      = false;
+    btn.textContent   = 'SUBMIT AVAILABILITY';
+    btn.onclick       = () => handleSubmit(eventId);
+
+    el('vote-form').style.display    = '';
+    el('link-to-results').href       = `#results/${eventId}`;
+    show('vote-content');
+  } catch (e) {
+    hide('vote-loading');
+    show('vote-error');
+  }
+}
+
+function buildAvailGrid(dates) {
+  const wrap = el('avail-grid-wrap');
+  const grid = document.createElement('div');
+  grid.className = 'avail-grid';
+
+  ['', 'MORNING', 'AFTERNOON', 'EVENING'].forEach(t => {
+    const h = document.createElement('div');
+    h.className   = 'grid-header';
+    h.textContent = t;
+    grid.appendChild(h);
+  });
+
+  dates.forEach(dateStr => {
+    const { dow, day, mon } = parseDate(dateStr);
+
+    const dl = document.createElement('div');
+    dl.className = 'grid-date';
+    dl.innerHTML = `
+      <span class="grid-date-dow">${dow}</span>
+      <span class="grid-date-md">${mon}&nbsp;${day}</span>`;
+    grid.appendChild(dl);
+
+    SLOTS.forEach(slot => {
+      const key  = `${dateStr}_${slot}`;
+      const cell = document.createElement('div');
+      cell.className = 'grid-cell';
+      cell.onclick   = () => {
+        if (selectedSlots[key]) {
+          delete selectedSlots[key];
+          cell.classList.remove('selected');
+        } else {
+          selectedSlots[key] = true;
+          cell.classList.add('selected');
+        }
+      };
+      grid.appendChild(cell);
+    });
+  });
+
+  wrap.innerHTML = '';
+  wrap.appendChild(grid);
+}
+
+async function handleSubmit(eventId) {
+  const name   = el('voter-name').value.trim();
+  const status = el('vote-status');
+
+  if (!name) {
+    status.textContent = 'ENTER YOUR NAME TO CONTINUE.';
+    status.className   = 'status err';
+    return;
+  }
+
+  const btn    = el('btn-submit');
+  btn.disabled = true;
+  status.textContent = 'SUBMITTING…';
+  status.className   = 'status';
+
+  const slots = {};
+  Object.keys(selectedSlots).forEach(k => {
+    const [d, sl] = k.split('_');
+    (slots[d] = slots[d] || []).push(sl);
+  });
+
+  try {
+    await addDoc(collection(db, 'events', eventId, 'responses'), {
+      name: name.toUpperCase(),
+      slots,
+      submittedAt: serverTimestamp()
+    });
+    status.textContent         = '';
+    el('vote-form').style.display = 'none';
+    show('vote-confirm');
+  } catch (e) {
+    console.error(e);
+    status.textContent = 'FAILED TO SUBMIT. CHECK YOUR CONNECTION.';
+    status.className   = 'status err';
+    btn.disabled       = false;
+  }
+}
+
+// ════════════════════════════════════════════════════════════
+//  PAGE 3 · RESULTS
+// ════════════════════════════════════════════════════════════
+async function loadResults(eventId) {
+  show('results-loading');
+  hide('results-content');
+  hide('results-error');
+  el('results-title').innerHTML = '&nbsp;';
+
+  try {
+    const [evSnap, rSnap] = await Promise.all([
+      getDoc(doc(db, 'events', eventId)),
+      getDocs(collection(db, 'events', eventId, 'responses'))
+    ]);
+    if (!evSnap.exists()) throw new Error('not found');
+
+    const event     = evSnap.data();
+    const responses = rSnap.docs.map(d => d.data());
+    const total     = responses.length;
+
+    el('results-title').textContent = event.title;
+    el('results-meta').textContent  =
+      total === 0
+        ? 'NO RESPONSES YET.  THE WASTELAND IS SILENT.'
+        : `${total} ${total === 1 ? 'WANDERER' : 'WANDERERS'} RESPONDED.`;
+
+    buildResultsGrid(event.dates, responses, total);
+    buildParticipants(responses);
+
+    hide('results-loading');
+    show('results-content');
+  } catch (e) {
+    hide('results-loading');
+    show('results-error');
+  }
+}
+
+function buildResultsGrid(dates, responses, total) {
+  const counts = {};
+  responses.forEach(r => {
+    if (!r.slots) return;
+    Object.entries(r.slots).forEach(([d, arr]) =>
+      arr.forEach(sl => counts[`${d}_${sl}`] = (counts[`${d}_${sl}`] || 0) + 1)
+    );
+  });
+  const maxCount = Math.max(0, ...Object.values(counts));
+
+  const wrap = el('results-grid-wrap');
+  const grid = document.createElement('div');
+  grid.className = 'results-grid';
+
+  ['', 'MORNING', 'AFTERNOON', 'EVENING'].forEach(t => {
+    const h = document.createElement('div');
+    h.className   = 'grid-header';
+    h.textContent = t;
+    grid.appendChild(h);
+  });
+
+  dates.forEach(dateStr => {
+    const { dow, day, mon } = parseDate(dateStr);
+
+    const dl = document.createElement('div');
+    dl.className = 'grid-date';
+    dl.innerHTML = `
+      <span class="grid-date-dow">${dow}</span>
+      <span class="grid-date-md">${mon}&nbsp;${day}</span>`;
+    grid.appendChild(dl);
+
+    SLOTS.forEach(slot => {
+      const key   = `${dateStr}_${slot}`;
+      const count = counts[key] || 0;
+      const best  = maxCount > 0 && count === maxCount;
+
+      const cell = document.createElement('div');
+      cell.className = 'result-cell' + (best ? ' best' : '');
+
+      if (count > 0 && total > 0) {
+        const a = 0.10 + (count / total) * 0.52;
+        cell.style.background = `rgba(139,105,20,${a.toFixed(2)})`;
+      }
+
+      cell.innerHTML = count > 0
+        ? `<span class="rc-count">${count}</span>
+           <span class="rc-denom">OF&nbsp;${total}</span>`
+        : `<span class="rc-count" style="color:var(--faded);font-size:16px">&mdash;</span>`;
+
+      grid.appendChild(cell);
+    });
+  });
+
+  wrap.innerHTML = '';
+  wrap.appendChild(grid);
+}
+
+function buildParticipants(responses) {
+  const wrap = el('participants-wrap');
+  if (!responses.length) { wrap.innerHTML = ''; return; }
+
+  const sorted = [...responses].sort((a, b) =>
+    (a.name || '').localeCompare(b.name || ''));
+
+  wrap.innerHTML = `
+    <div class="participants">
+      <div class="participants-label">RESPONDENTS</div>
+      ${sorted.map(r => `<div class="participant-row">${r.name || 'UNKNOWN'}</div>`).join('')}
+    </div>`;
+}
+</script>
+</body>
+</html>
