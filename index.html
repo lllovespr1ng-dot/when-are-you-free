@@ -440,6 +440,8 @@ import {
   collection, addDoc, getDocs, serverTimestamp
 } from
   'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+import { getAnalytics, logEvent } from
+  'https://www.gstatic.com/firebasejs/10.12.0/firebase-analytics.js';
 
 // ┌──────────────────────────────────────────────────────────┐
 // │         *** REPLACE WITH YOUR FIREBASE CONFIG ***        │
@@ -463,8 +465,14 @@ const firebaseConfig = {
 // │    }                                                     │
 // └──────────────────────────────────────────────────────────┘
 
-const app = initializeApp(firebaseConfig);
-const db  = getFirestore(app);
+const app       = initializeApp(firebaseConfig);
+const db        = getFirestore(app);
+const analytics = getAnalytics(app);
+
+// ── Analytics helper ─────────────────────────────────────────
+function track(event, params = {}) {
+  try { logEvent(analytics, event, params); } catch (_) {}
+}
 
 // ── Constants ────────────────────────────────────────────────
 const DAYS   = ['SUN','MON','TUE','WED','THU','FRI','SAT'];
@@ -499,8 +507,14 @@ function hide(id)   { el(id).style.display = 'none';  }
 
 window.copyField = (id, btn) => {
   const val = el(id).value;
+  const type = id === 'vote-link' ? 'vote' : 'results';
   navigator.clipboard.writeText(val)
-    .then(() => { const t = btn.textContent; btn.textContent = 'COPIED'; setTimeout(() => btn.textContent = t, 1600); })
+    .then(() => {
+      const t = btn.textContent;
+      btn.textContent = 'COPIED';
+      setTimeout(() => btn.textContent = t, 1600);
+      track('link_copied', { link_type: type });
+    })
     .catch(() => { el(id).select(); document.execCommand('copy'); });
 };
 
@@ -515,12 +529,16 @@ async function route() {
   const h = window.location.hash;
   if (!h || h === '#' || h === '#create') {
     showPage('page-create'); initCreate();
+    track('page_view', { page: 'create' });
   } else if (h.startsWith('#vote/')) {
     showPage('page-vote');    await loadVote(h.slice(6));
+    track('page_view', { page: 'vote' });
   } else if (h.startsWith('#results/')) {
     showPage('page-results'); await loadResults(h.slice(9));
+    track('page_view', { page: 'results' });
   } else {
     showPage('page-create'); initCreate();
+    track('page_view', { page: 'create' });
   }
 }
 
@@ -593,6 +611,7 @@ async function handleGenerate() {
     show('create-result');
     status.textContent = '';
     btn.disabled       = false;
+    track('event_created', { dates_count: dates.length });
   } catch (e) {
     console.error(e);
     status.textContent = 'THE SANDS RESISTED. CHECK YOUR FIREBASE CONFIG.';
@@ -636,6 +655,7 @@ async function loadVote(eventId) {
     el('vote-form').style.display    = '';
     el('link-to-results').href       = `#results/${eventId}`;
     show('vote-content');
+    track('vote_page_loaded', { event_id: eventId, dates_count: event.dates.length });
   } catch (e) {
     hide('vote-loading');
     show('vote-error');
@@ -715,6 +735,10 @@ async function handleSubmit(eventId) {
     status.textContent         = '';
     el('vote-form').style.display = 'none';
     show('vote-confirm');
+    track('vote_submitted', {
+      event_id:    eventId,
+      slots_count: Object.keys(selectedSlots).length
+    });
   } catch (e) {
     console.error(e);
     status.textContent = 'FAILED TO SUBMIT. CHECK YOUR CONNECTION.';
@@ -754,6 +778,7 @@ async function loadResults(eventId) {
 
     hide('results-loading');
     show('results-content');
+    track('results_viewed', { event_id: eventId, responses_count: total });
   } catch (e) {
     hide('results-loading');
     show('results-error');
